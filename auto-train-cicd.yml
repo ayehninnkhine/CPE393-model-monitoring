@@ -1,0 +1,38 @@
+
+# .github/workflows/ml-pipeline.yml
+name: ML Pipeline
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly retraining
+
+jobs:
+  train-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    
+    - name: Install dependencies
+      run: |
+        pip install mlflow scikit-learn pandas numpy
+    
+    - name: Run training pipeline
+      run: |
+        python train_pipeline.py
+    
+    - name: Run tests
+      run: |
+        python load-inference.py
+    
+    - name: Deploy model
+      if: success()
+      run: |
+        python automated-train_pipeline.py
